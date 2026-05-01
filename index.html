@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reminder web</title>
+    <!-- Load Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the Inter font and smooth transitions */
+        :root {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Premium Card Shadow - Lighter, wider, and more subtle lift */
+        .card-shadow {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 16px 30px rgba(0, 0, 0, 0.03); 
+            transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        /* Enhanced Lift and Custom Glow on hover for the entire card */
+        .animated-scale:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(5, 150, 105, 0.18);
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-20%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+            50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+        }
+        .animate-bounce-custom {
+            animation: bounce 1s infinite;
+        }
+
+        /* Input field smooth focus transition */
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.4);
+        }
+        
+        input[type="date"], input[type="time"] {
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        /* --- MINI-CALENDAR STYLES --- */
+        .mini-calendar-day {
+            @apply p-1.5 rounded-lg cursor-pointer transition duration-150 relative;
+            height: 100px; /* Increased height to fit task summaries */
+            @apply flex flex-col justify-between items-start text-xs font-medium;
+            border: 1px solid transparent;
+        }
+
+        .mini-calendar-day:hover {
+            @apply bg-emerald-50 border-accent-emerald;
+        }
+
+        .task-summary-text {
+            /* Truncates the task name to fit the small tile */
+            @apply text-[10px] font-medium w-full mt-1.5 overflow-hidden whitespace-nowrap text-ellipsis text-left;
+        }
+        /* Ensure the month grid does not collapse */
+        #mini-calendar-days > div {
+            border-bottom: 1px solid #E2E8F0;
+            border-right: 1px solid #E2E8F0;
+        }
+        #mini-calendar-days > div:nth-child(7n) {
+            border-right: none;
+        }
+    </style>
+    <script>
+        // Professional & Natural Color Scheme: Slate Gray and Emerald Green
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-slate': '#1E293B',   /* Deep Slate Gray (Professional, Text) */
+                        'accent-emerald': '#059669',  /* Muted Emerald Green (Natural, Success) */
+                        'danger-red': '#EF4444',      /* Standard Red for alerts */
+                        'soft-bg': '#F1F5F9',         /* Muted blue-gray background (Screen Color) */
+                        'card-bg': '#FFFFFF',         /* Pure white for card contrast */
+                        'neutral-border': '#CBD5E1',  /* Soft gray border */
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+
+
+<head>
+   <style>
+    body {
+      background-image: url("hj.jpg");
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      color: #333;
+    }
+#auth-view {
+  background: linear-gradient(135deg, #1E2A38, #283B4F, #1A2733);
+  color: #E1E8EB;
+  border-radius: 1.5rem;
+}
+
+#auth-view input {
+  background: #2E3E50;
+  color: #F0F4F8;
+  border: 1px solid #4A90E2;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+#auth-view input::placeholder {
+  color: #7A9BBF;
+  opacity: 1;
+}
+
+#auth-view input:focus {
+  outline: none;
+  border-color: #58A6FF;
+  box-shadow: 0 0 8px #58A6FF;
+}
+
+#auth-button {
+  background: linear-gradient(90deg, #4A90E2, #1E2A38);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.5);
+  transition: all 0.25s ease;
+}
+
+#auth-button:hover {
+  background: linear-gradient(90deg, #1E2A38, #4A90E2);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.7);
+  transform: scale(1.03);
+}
+
+#auth-button:active {
+  transform: scale(0.97);
+}
+
+    h1 {
+      margin-top: 200px;
+      background-color: rgba(255, 255, 255, 0.8);
+      display: inline-block;
+      padding: 20px;
+      border-radius: 12px;
+    }
+  
+
+/* Base Styles */
+.background-sunlight-enhanced {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+    /* Soft, cool morning light base */
+    background: linear-gradient(180deg, #e0f7fa 0%, #b2ebf2 50%, #80deea 100%);
+    overflow: hidden;
+}
+
+/* 1. Subtle, Large Light Source (The Sun) */
+.background-sunlight-enhanced::before {
+    content: '';
+    position: absolute;
+    top: -150px;
+    right: -150px;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    /* Warm, inviting color */
+    background: radial-gradient(circle, rgba(255, 255, 204, 0.8) 0%, rgba(255, 204, 153, 0.4) 30%, rgba(255, 255, 255, 0) 70%);
+    filter: blur(100px);
+    animation: sunbeamPulse 12s infinite ease-in-out alternate;
+    z-index: 1;
+}
+label[for="email"] {
+  color: white;
+}
+label[for="password"] {
+  color: white;
+}
+
+
+/* 2. Floating Dust Motes/Particles (Slow Movement) */
+.background-sunlight-enhanced::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Use a repeating radial gradient for small, scattered dots */
+    background-image: radial-gradient(white 1px, transparent 0);
+    background-size: 50px 50px; /* Controls the density of the dots */
+    opacity: 0.1; /* Very subtle */
+    animation: floatingMotes 40s linear infinite;
+    z-index: 2;
+}
+
+/* Keyframe Animations */
+@keyframes sunbeamPulse {
+    0% { transform: scale(1) rotate(0deg); opacity: 0.6; }
+    50% { transform: scale(1.05) rotate(5deg); opacity: 0.7; }
+    100% { transform: scale(1) rotate(0deg); opacity: 0.6; }
+}
+
+@keyframes floatingMotes {
+    0% { background-position: 0 0; }
+    100% { background-position: 500px 500px; } /* Shifts the pattern slowly */
+}
+
+body {
+    position: relative;
+    min-height: 100vh;
+}
+ </style>
+</head>
+  
+    <div id="message-box" class="fixed top-6 left-1/2 transform -translate-x-1/2 w-full max-w-sm p-4 rounded-xl text-base z-[100] hidden transition-all duration-300 shadow-2xl"></div>
+
+   
+    <div id="app-container" class="flex-grow flex items-center justify-center p-4 sm:p-10 lg:p-16">
+
+        
+<div id="auth-view" class="w-full max-w-xl bg-card-bg rounded-3xl p-10 card-shadow transition-all duration-500 relative z-10">
+
+            <h1 class="text-4xl font-extrabold text-primary-slate mb-2 text-center">REMINDER WEB</h1>
+            <p class="text-gray-500 mb-8 text-center" id="auth-subtitle">Secure Login</p>
+            <form id="auth-form" onsubmit="event.preventDefault(); handleAuth();">
+                <div class="mb-5 text-left">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <input type="email" id="email" required value="user@test.com"
+                           class="w-full px-4 py-3 border border-neutral-border rounded-xl focus:border-accent-emerald transition duration-150"
+                           placeholder="you@example.com">
+                </div>
+                <div class="mb-7 text-left">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="password" required value="password123"
+                           class="w-full px-4 py-3 border border-neutral-border rounded-xl focus:border-accent-emerald transition duration-150"
+                           placeholder="••••••••">
+                </div>
+                <button type="submit" id="auth-button"
+                        class="w-full bg-primary-slate text-white py-3.5 rounded-xl font-bold hover:bg-gray-700 active:scale-[0.98] transition duration-200 shadow-lg hover:shadow-xl">
+                    Log In
+                </button>
+            </form>
+            <div class="mt-8 text-center">
+                <button id="toggle-auth-btn" onclick="toggleAuthMode()"
+                        class="text-sm text-gray-500 hover:text-primary-slate transition duration-150">
+                    Don't have an account? <span class="font-bold">Create one!</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="dashboard-view" class="hidden w-full max-w-7xl transition-all duration-500">
+            <!-- Dashboard Header -->
+            <header class="bg-card-bg p-6 rounded-3xl card-shadow mb-10 flex flex-col sm:flex-row justify-between items-center">
+                <div class="flex flex-col sm:flex-row items-center">
+                    <h2 class="text-3xl font-extrabold text-primary-slate mb-2 sm:mb-0 mr-6">TASK MATE</h2>
+                    <!-- Real-Time Clock -->
+                    <div id="current-time-display" class="text-xl font-mono font-bold text-accent-emerald bg-soft-bg px-4 py-1.5 rounded-full shadow-inner border border-neutral-border">
+                        12:00:00 PM
+                    </div>
+                </div>
+                <button onclick="logout()" class="mt-4 sm:mt-0 text-sm text-gray-500 hover:text-danger-red transition duration-150 flex items-center space-x-1 p-2 rounded-lg hover:bg-soft-bg active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                    </svg>
+                    <span class="font-semibold">Logout</span>
+                </button>
+            </header>
+
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+                <!-- TASK & ALARM MANAGER CARD  -->
+                <div class="lg:col-span-2 bg-card-bg p-8 sm:p-10 rounded-3xl card-shadow animated-scale">
+                    
+                    <!-- TASK PRIORITY SECTION -->
+                    <section class="mb-12 pb-6 border-b border-neutral-border">
+                        <h3 class="text-2xl font-bold text-primary-slate mb-6 pb-3 border-b border-gray-100 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-accent-emerald mr-2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            Task Priority Manager
+                        </h3>
+                        <p class="text-gray-500 mb-8 text-left">Define your next action and set its urgency and deadline for clear focus.</p>
+
+                        <div class="flex flex-col md:flex-row flex-wrap items-stretch md:items-end -mx-2">
+                            <div class="w-full md:w-1/2 px-2 mb-4 md:mb-0 text-left">
+                                <label for="task-name" class="block text-sm font-medium text-gray-700 mb-2">Task Description</label>
+                                <input type="text" id="task-name" placeholder="E.g., Finalize Q3 budget report"
+                                    class="w-full px-4 py-3 border border-neutral-border rounded-xl focus:border-accent-emerald transition duration-150">
+                            </div>
+                            <div class="w-full sm:w-1/3 md:w-1/4 px-2 mb-4 md:mb-0 text-left">
+                                <label for="priority-level" class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                                <select id="priority-level" class="w-full px-4 py-3 border border-neutral-border rounded-xl bg-white focus:border-accent-emerald transition duration-150">
+                                    <option value="High">🔴 High</option>
+                                    <option value="Medium" selected>🟡 Medium</option>
+                                    <option value="Low">🟢 Low</option>
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-2/3 md:w-1/4 px-2 mb-4 md:mb-0 flex-grow text-left">
+                                 <label for="task-due-date" class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                                <input type="date" id="task-due-date" required
+                                    class="w-full px-4 py-3 border border-neutral-border rounded-xl focus:border-accent-emerald transition duration-150">
+                            </div>
+                            <button onclick="addTask()"
+                                class="w-full md:w-auto mt-2 md:mt-0 bg-accent-emerald text-white py-3.5 px-6 rounded-xl font-bold hover:bg-emerald-700 active:scale-[0.98] transition duration-200 shadow-md hover:shadow-lg">
+                                Add Task
+                            </button>
+                        </div>
+
+                        <div class="mt-10">
+                            <h4 class="text-xl font-bold text-primary-slate mb-5 border-b border-gray-100 pb-2">Your Current Tasks</h4>
+                            <ul id="task-list" class="space-y-4">
+                                <!-- Tasks will be injected here -->
+                            </ul>
+                        </div>
+                    </section>
+                    
+                    <!-- ALARM SCHEDULER SECTION  -->
+                    <section>
+                        <h3 class="text-2xl font-bold text-primary-slate mb-6 pb-3 border-b border-gray-100 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-primary-slate mr-2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            Alarm Scheduler
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- Date Input -->
+                            <div>
+                                <label for="alarm-date" class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                                <input type="date" id="alarm-date" required
+                                    class="w-full px-4 py-3 border border-neutral-border rounded-xl focus:border-accent-emerald transition duration-150">
+                            </div>
+                            <!-- Time Input -->
+                            <div>
+                                <label for="alarm-time" class="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                                <input type="time" id="alarm-time" required value="07:00"
+                                    class="w-full px-4 py-3 border border-neutral-border rounded-xl focus:border-accent-emerald transition duration-150">
+                            </div>
+                            <div>
+                                <label for="alarm-label" class="block text-sm font-medium text-gray-700 mb-2">Label</label>
+                                <input type="text" id="alarm-label" placeholder="e.g., Team Meeting Prep"
+                                    class="w-full px-4 py-3 border border-neutral-border rounded-xl focus:border-accent-emerald transition duration-150">
+                            </div>
+                        </div>
+                        <button onclick="setAlarm()"
+                            class="w-full mt-5 bg-primary-slate text-white py-3.5 rounded-xl font-bold hover:bg-gray-700 active:scale-[0.98] transition duration-200 shadow-lg hover:shadow-xl">
+                            Schedule Alarm
+                        </button>
+    
+                        <div class="mt-10">
+                            <h4 class="text-xl font-bold text-primary-slate mb-5 border-b border-gray-100 pb-2">Upcoming Alarms</h4>
+                            <ul id="alarm-list" class="space-y-4">
+                            </ul>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- TASK CALENDAR CARD  -->
+                <div class="bg-card-bg p-8 sm:p-10 rounded-3xl card-shadow animated-scale overflow-hidden h-fit">
+                    
+                    <!-- MINI TASK CALENDAR -->
+                    <div>
+                        <h3 class="text-2xl font-bold text-primary-slate mb-6 pb-3 border-b border-neutral-border flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-accent-emerald mr-2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5m18 7.5v-7.5" />
+                            </svg>
+                            Task Overview Calendar
+                        </h3>
+                        
+                        <!-- Calendar Header (Month Navigation) -->
+                        <div class="flex justify-between items-center mb-4">
+                            <button onclick="goToPrevMonth()" class="p-1 rounded-full hover:bg-soft-bg transition duration-150">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-primary-slate">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                                </svg>
+                            </button>
+                            <h4 id="calendar-month-year" class="text-lg font-extrabold text-primary-slate"></h4>
+                            <button onclick="goToNextMonth()" class="p-1 rounded-full hover:bg-soft-bg transition duration-150">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-primary-slate">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Calendar Grid -->
+                        <div class="border-l border-t border-neutral-border/50">
+                            <!-- Day Names -->
+                            <div class="grid grid-cols-7 text-center font-bold text-[10px] sm:text-xs py-1.5 bg-soft-bg text-primary-slate border-b border-neutral-border/50">
+                                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                            </div>
+                            
+                            <div id="mini-calendar-days" class="grid grid-cols-7 text-xs font-medium"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alarm Pop-up Modal -->
+    <div id="alarm-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center p-4 z-50">
+        <div id="alarm-box" class="bg-card-bg rounded-3xl p-8 card-shadow w-full max-w-sm text-center">
+            <div class="text-6xl mb-4 text-danger-red animate-bounce-custom">⏰</div>
+            <h3 class="text-3xl font-bold text-primary-slate mb-2">TIME TO ACT!</h3>
+            <p id="modal-alarm-datetime" class="text-xl font-bold text-gray-600 mb-1"></p>
+            <p id="modal-alarm-label" class="text-lg text-gray-500 mb-6"></p>
+
+            <div class="flex space-x-4">
+                <button onclick="snoozeAlarm()"
+                        class="flex-1 bg-neutral-border text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 active:scale-[0.98] transition duration-200">
+                    Snooze (5 min)
+                </button>
+                <button onclick="dismissAlarm(window.currentFiringAlarmId)"
+                        class="flex-1 bg-danger-red text-white py-3 rounded-xl font-bold hover:bg-red-700 active:scale-[0.98] transition duration-200 shadow-md">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="calendar-task-details-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4 z-40">
+        <div class="bg-card-bg rounded-xl p-6 card-shadow w-full max-w-lg">
+            <h5 class="text-xl font-bold text-primary-slate mb-4">Tasks Due on <span id="modal-task-date"></span></h5>
+            <ul id="modal-task-list" class="space-y-2 max-h-80 overflow-y-auto">
+                <!-- Detailed tasks for the selected day  -->
+            </ul>
+            <button onclick="closeTaskDetailsModal()" class="mt-4 w-full bg-primary-slate text-white py-2 rounded-xl font-bold hover:bg-gray-700 transition duration-200">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Global state and UI references
+        let isLoginMode = true;
+        let scheduledAlarms = []; 
+        let scheduledTasks = []; // State for tasks with dates
+        let alarmCheckInterval = null;
+        window.currentFiringAlarmId = null; 
+        
+        let currentCalendarDate = new Date(); // Tracks the currently displayed month/year
+
+        const authView = document.getElementById('auth-view');
+        const dashboardView = document.getElementById('dashboard-view');
+        const authButton = document.getElementById('auth-button');
+        const authSubtitle = document.getElementById('auth-subtitle');
+        const toggleAuthBtn = document.getElementById('toggle-auth-btn');
+        const messageBox = document.getElementById('message-box');
+        const taskList = document.getElementById('task-list');
+        const alarmList = document.getElementById('alarm-list');
+        const alarmModal = document.getElementById('alarm-modal');
+        const currentTimeDisplay = document.getElementById('current-time-display');
+        const miniCalendarDays = document.getElementById('mini-calendar-days');
+        const calendarMonthYear = document.getElementById('calendar-month-year');
+        const taskDetailsModal = document.getElementById('calendar-task-details-modal');
+        const modalTaskDate = document.getElementById('modal-task-date');
+        const modalTaskList = document.getElementById('modal-task-list');
+
+        const generateUniqueId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
+
+       
+
+        function updateClock() {
+            const now = new Date();
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+            const timeString = now.toLocaleTimeString('en-US', timeOptions);
+            if (currentTimeDisplay) {
+                currentTimeDisplay.textContent = timeString;
+            }
+        }
+
+        function showMessage(message, type = 'error') {
+            messageBox.textContent = message;
+            messageBox.className = 'fixed top-6 left-1/2 transform -translate-x-1/2 w-full max-w-sm p-4 rounded-xl text-base z-[100] transition-all duration-300 shadow-2xl';
+            messageBox.classList.remove('hidden');
+
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'border-2', 'border-danger-red', 'text-red-800'); 
+            } else if (type === 'success') {
+                messageBox.classList.add('bg-emerald-100', 'border-2', 'border-accent-emerald', 'text-emerald-800'); 
+            } else { // info
+                messageBox.classList.add('bg-blue-50', 'border-2', 'border-primary-slate', 'text-slate-800'); 
+            }
+
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 5000);
+        }
+
+        // --- Auth Logic  ---
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            if (isLoginMode) {
+                authButton.textContent = 'Log In';
+                authSubtitle.textContent = 'Secure Login';
+                toggleAuthBtn.innerHTML = `Don't have an account? <span class="font-bold">Create one!</span>`;
+                document.getElementById('email').value = 'user@test.com';
+                document.getElementById('password').value = 'password123';
+            } else {
+                authButton.textContent = 'Create Account';
+                authSubtitle.textContent = 'Set up a new account';
+                toggleAuthBtn.innerHTML = `Already have an account? <span class="font-bold">Log in!</span>`;
+                document.getElementById('email').value = 'new@user.com';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        function handleAuth() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            if (!email || !password) { showMessage("Please enter both email and password.", 'error'); return; }
+
+            authButton.disabled = true;
+            authButton.textContent = isLoginMode ? 'Checking...' : 'Creating...';
+
+            setTimeout(() => {
+                authButton.disabled = false;
+                if (isLoginMode) {
+                    if (email !== 'user@test.com') {
+                        showMessage("Login Failed: Account not found. Please switch to 'Create one!' or use the test email.", 'error');
+                        authButton.textContent = 'Log In';
+                    } else {
+                        showMessage("Welcome back! Loading dashboard...", 'success');
+                        showDashboard();
+                    }
+                } else {
+                    showMessage("Account created successfully! Logging you in...", 'success');
+                    isLoginMode = true; 
+                    document.getElementById('email').value = email; 
+                    showDashboard();
+                }
+            }, 1000);
+        }
+
+        function showDashboard() {
+            authView.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                authView.classList.add('hidden');
+                dashboardView.classList.remove('hidden');
+                dashboardView.classList.add('opacity-100', 'scale-100');
+                startAlarmChecker();
+                setInterval(updateClock, 1000); 
+                updateClock();
+                renderTasks();
+                renderAlarms(); // Ensure alarms render immediately on login
+                renderCalendar(currentCalendarDate);
+            }, 300);
+        }
+
+        function logout() {
+            dashboardView.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                dashboardView.classList.add('hidden');
+                authView.classList.remove('hidden');
+                authView.classList.remove('opacity-0', 'scale-95');
+                showMessage("Logged out successfully.", 'info');
+                stopAlarmChecker(); 
+                toggleAuthMode();
+            }, 300);
+        }
+        
+        // --- Task Logic  ---
+        
+        function renderTasks() {
+            taskList.innerHTML = '';
+            scheduledTasks.sort((a, b) => {
+                const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+                if (priorityOrder[b.priority] !== priorityOrder[a.priority]) {
+                    return priorityOrder[b.priority] - priorityOrder[a.priority];
+                }
+                return new Date(a.date) - new Date(b.date);
+            });
+
+            if (scheduledTasks.length === 0) {
+                taskList.innerHTML = `<li class="text-gray-500 text-center py-4">No tasks scheduled. Add one above!</li>`;
+                return;
+            }
+
+            scheduledTasks.forEach(task => {
+                let colorClass = '';
+                let emoji = '';
+                switch (task.priority) {
+                    case 'High': colorClass = 'text-danger-red'; emoji = '🔴'; break;
+                    case 'Medium': colorClass = 'text-amber-500'; emoji = '🟡'; break;
+                    case 'Low': colorClass = 'text-accent-emerald'; emoji = '🟢'; break;
+                }
+                
+                const listItem = document.createElement('li');
+                listItem.id = 'task-' + task.id;
+                listItem.className = 'p-4 bg-soft-bg border border-neutral-border rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center text-base shadow-sm hover:border-accent-emerald transition duration-150';
+                
+                listItem.innerHTML = `
+                    <div class="flex items-center mb-2 sm:mb-0">
+                        <span class="${colorClass} font-extrabold text-lg mr-3">${emoji}</span>
+                        <span class="text-gray-800 font-semibold">${task.name}</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-sm">
+                        <span class="text-gray-500 font-mono">Due: ${task.date}</span>
+                        <button onclick="removeTask('${task.id}')" class="text-gray-400 hover:text-danger-red transition duration-150 p-1.5 rounded-full hover:bg-white flex items-center">&times;</button>
+                    </div>
+                `;
+                taskList.appendChild(listItem);
+            });
+        }
+        
+        function addTask() {
+            const taskNameInput = document.getElementById('task-name');
+            const priorityLevelSelect = document.getElementById('priority-level');
+            const dueDateInput = document.getElementById('task-due-date');
+            
+            const taskName = taskNameInput.value.trim();
+            const priority = priorityLevelSelect.value;
+            const dueDate = dueDateInput.value;
+
+            if (!taskName || !dueDate) {
+                showMessage("Please enter a task description and a due date.", 'error');
+                return;
+            }
+            
+            const todayDateString = new Date().toISOString().split('T')[0];
+            if (dueDate < todayDateString) {
+                showMessage("Due date should not be in the past.", 'error');
+                return;
+            }
+
+            const newTask = {
+                id: generateUniqueId(),
+                name: taskName,
+                priority: priority,
+                date: dueDate
+            };
+
+            scheduledTasks.push(newTask);
+            taskNameInput.value = '';
+            
+            renderTasks();
+            renderCalendar(currentCalendarDate);
+
+            showMessage("Task added and scheduled on the calendar!", 'success');
+        }
+
+        function removeTask(id) {
+            scheduledTasks = scheduledTasks.filter(task => task.id !== id);
+            renderTasks();
+            renderCalendar(currentCalendarDate);
+            showMessage("Task removed.", 'info');
+        }
+
+        // --- Calendar Logic  ---
+
+        function goToPrevMonth() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            renderCalendar(currentCalendarDate);
+        }
+
+        function goToNextMonth() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            renderCalendar(currentCalendarDate);
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        /** Renders the calendar grid for a given date in the small format. */
+        function renderCalendar(date) {
+            miniCalendarDays.innerHTML = '';
+            
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const todayString = formatDate(new Date());
+
+            calendarMonthYear.textContent = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+            const firstDayOfMonth = new Date(year, month, 1);
+            const startingDay = firstDayOfMonth.getDay(); 
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // 1. Create filler days 
+            for (let i = 0; i < startingDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'mini-calendar-day text-gray-400 bg-soft-bg/50 border-r border-b border-neutral-border/50';
+                miniCalendarDays.appendChild(emptyDay);
+            }
+
+            // 2. Create actual days
+            const priorityColors = { 'High': 'bg-danger-red', 'Medium': 'bg-amber-500', 'Low': 'bg-accent-emerald' };
+            const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const currentDay = new Date(year, month, day);
+                const dayString = formatDate(currentDay);
+                
+                // Get tasks for this day and sort by priority
+                const tasksForDay = scheduledTasks
+                    .filter(task => task.date === dayString)
+                    .sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = 'mini-calendar-day text-primary-slate text-center';
+
+                // Highlight today and set base background
+                if (dayString === todayString) {
+                    dayElement.classList.add('bg-emerald-100', 'font-bold', 'border-accent-emerald', 'ring-1', 'ring-accent-emerald');
+                } else {
+                    dayElement.classList.add('bg-card-bg');
+                }
+
+                // Day Number
+                dayElement.innerHTML = `<span class="text-sm font-semibold w-full text-right pr-1 pt-0.5">${day}</span>`;
+
+                // Add task summaries
+                if (tasksForDay.length > 0) {
+                    const topTask = tasksForDay[0];
+                    const priorityDotColor = priorityColors[topTask.priority];
+                    
+                    // Task Summary 1 (Highest Priority)
+                    dayElement.innerHTML += `
+                        <div class="flex items-center w-full mt-2 justify-start">
+                            <span class="w-2 h-2 rounded-full ${priorityDotColor} mr-1.5 flex-shrink-0"></span>
+                            <span class="task-summary-text text-gray-700">${topTask.name}</span>
+                        </div>
+                    `;
+                    
+                    // Task Summary 2 (If available)
+                    if (tasksForDay.length > 1) {
+                         dayElement.innerHTML += `
+                            <div class="flex items-center w-full">
+                                <span class="text-[10px] text-gray-500 font-mono w-full text-left ml-[14px] mt-1">+${tasksForDay.length - 1} more...</span>
+                            </div>
+                        `;
+                    }
+
+                    // Add click event to show modal for full list
+                    dayElement.addEventListener('click', () => showTaskDetailsModal(dayString, tasksForDay));
+                    dayElement.style.cursor = 'pointer';
+                }
+
+                miniCalendarDays.appendChild(dayElement);
+            }
+
+            // 3. Create filler days (for the next month)
+            const totalDays = startingDay + daysInMonth;
+            const rows = Math.ceil(totalDays / 7);
+            const remaining = (rows * 7) - totalDays; 
+            for (let i = 0; i < remaining; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'mini-calendar-day text-gray-400 bg-soft-bg/50 border-r border-b border-neutral-border/50';
+                miniCalendarDays.appendChild(emptyDay);
+            }
+        }
+        
+        function showTaskDetailsModal(dateString, tasks) {
+            modalTaskDate.textContent = dateString;
+            modalTaskList.innerHTML = '';
+
+            tasks.forEach(task => {
+                let colorClass = '';
+                switch (task.priority) {
+                    case 'High': colorClass = 'bg-danger-red/10 border-danger-red text-danger-red'; break;
+                    case 'Medium': colorClass = 'bg-amber-100 border-amber-500 text-amber-800'; break;
+                    case 'Low': colorClass = 'bg-accent-emerald/10 border-accent-emerald text-accent-emerald'; break;
+                }
+                
+                const taskItem = document.createElement('li');
+                taskItem.className = `p-3 rounded-lg border-l-4 ${colorClass} shadow-sm flex justify-between items-center`;
+                taskItem.innerHTML = `
+                    <span class="font-medium">${task.name}</span>
+                    <span class="text-xs font-mono uppercase">${task.priority}</span>
+                `;
+                modalTaskList.appendChild(taskItem);
+            });
+
+            taskDetailsModal.classList.remove('hidden');
+            taskDetailsModal.classList.add('flex');
+        }
+        
+        function closeTaskDetailsModal() {
+            taskDetailsModal.classList.remove('flex');
+            taskDetailsModal.classList.add('hidden');
+        }
+
+
+        // --- Alarm Logic (Unchanged, for completeness) ---
+
+        function formatAlarmDateTime(dateObj) {
+            if (!(dateObj instanceof Date) || isNaN(dateObj)) return "Invalid Date";
+            const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+            const dateOptions = { month: 'short', day: 'numeric' };
+            const timeString = dateObj.toLocaleTimeString('en-US', timeOptions);
+            const dateString = dateObj.toLocaleDateString('en-US', dateOptions);
+            return `${timeString}, ${dateString}`;
+        }
+
+        function playAlarmSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); 
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                oscillator.start();
+                setTimeout(() => {
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
+                    oscillator.stop(audioCtx.currentTime + 0.5);
+                }, 1500); 
+            } catch (e) { console.error("Web Audio API failed to play sound:", e); }
+        }
+
+        function requestNotificationPermission() {
+            if (!("Notification" in window)) {
+                console.warn("Desktop notifications not supported.");
+            } else if (Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+        }
+
+        function triggerAlarm(alarm) {
+            playAlarmSound();
+            window.currentFiringAlarmId = alarm.id; 
+            
+            const alarmModalElement = document.getElementById('alarm-modal');
+            const modalAlarmDateTime = document.getElementById('modal-alarm-datetime');
+            const modalAlarmLabel = document.getElementById('modal-alarm-label');
+            
+            modalAlarmDateTime.textContent = formatAlarmDateTime(alarm.dateTime);
+            modalAlarmLabel.textContent = alarm.label;
+            alarmModalElement.classList.remove('hidden');
+            alarmModalElement.classList.add('flex');
+            stopAlarmChecker();
+        }
+
+        function snoozeAlarm() {
+            const currentAlarm = scheduledAlarms.find(a => a.id === window.currentFiringAlarmId);
+            if (currentAlarm) {
+                const newDateTime = new Date(currentAlarm.dateTime.getTime() + 5 * 60000); 
+                scheduledAlarms.push({ 
+                    id: generateUniqueId(), 
+                    dateTime: newDateTime, 
+                    label: currentAlarm.label.replace(' (SNOOZE)', '') + " (SNOOZE)", 
+                    triggered: false 
+                });
+                showMessage(`Snoozed! Alarm rescheduled for ${formatAlarmDateTime(newDateTime)}.`, 'info');
+            }
+            dismissAlarm(window.currentFiringAlarmId); 
+        }
+
+        function dismissAlarm(id) {
+            const alarmModalElement = document.getElementById('alarm-modal');
+            alarmModalElement.classList.remove('flex');
+            alarmModalElement.classList.add('hidden');
+            window.currentFiringAlarmId = null;
+            scheduledAlarms = scheduledAlarms.filter(alarm => alarm.id !== id);
+            renderAlarms();
+            startAlarmChecker(); 
+            if (!scheduledAlarms.some(a => a.id === id)) { showMessage("Alarm dismissed.", 'success'); }
+        }
+
+        function checkAlarms() {
+            const now = Date.now();
+            const alarmsToTrigger = scheduledAlarms.filter(alarm => {
+                const alarmTime = alarm.dateTime.getTime();
+                return alarmTime <= now && !alarm.triggered;
+            });
+            alarmsToTrigger.forEach(alarm => {
+                alarm.triggered = true;
+                triggerAlarm(alarm); 
+            });
+        }
+
+        function startAlarmChecker() {
+            if (!alarmCheckInterval) { alarmCheckInterval = setInterval(checkAlarms, 1000); }
+        }
+
+        function stopAlarmChecker() {
+            if (alarmCheckInterval) { clearInterval(alarmCheckInterval); alarmCheckInterval = null; }
+        }
+
+        function renderAlarms() {
+            alarmList.innerHTML = '';
+            scheduledAlarms.sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+
+            if (scheduledAlarms.length === 0) {
+                alarmList.innerHTML = `<li class="text-gray-500 text-center py-4 text-sm">No alarms set.</li>`;
+                return;
+            }
+
+            scheduledAlarms.forEach(alarm => {
+                const formattedDateTime = formatAlarmDateTime(alarm.dateTime);
+                const listItem = document.createElement('li');
+                listItem.className = 'p-4 bg-soft-bg border border-neutral-border rounded-xl flex justify-between items-center text-base shadow-sm hover:border-primary-slate transition duration-150';
+                
+                const [timePart, datePart] = formattedDateTime.split(',').map(s => s.trim());
+
+                listItem.innerHTML = `
+                    <span class="text-gray-800">
+                        <span class="text-primary-slate font-extrabold mr-2">${timePart}</span>
+                        <span class="text-gray-500 mr-3 text-sm">(${datePart})</span>
+                        ${alarm.label}
+                    </span>
+                    <button onclick="removeAlarm('${alarm.id}')" class="text-gray-400 hover:text-danger-red transition duration-150 p-1.5 rounded-full hover:bg-white">&times;</button>
+                `;
+                alarmList.appendChild(listItem);
+            });
+        }
+
+
+        function setAlarm() {
+            const alarmDate = document.getElementById('alarm-date').value;
+            const alarmTime = document.getElementById('alarm-time').value;
+            const alarmLabel = document.getElementById('alarm-label').value.trim() || 'Unlabeled Alarm';
+
+            if (!alarmDate || !alarmTime) { showMessage("Please select both a date and a time for the alarm.", 'error'); return; }
+
+            const alarmDateTime = new Date(`${alarmDate}T${alarmTime}:00`);
+            const now = new Date();
+            if (alarmDateTime.getTime() <= now.getTime()) { showMessage("The specified date and time has already passed.", 'error'); return; }
+
+            requestNotificationPermission();
+            const alarmId = generateUniqueId();
+            
+            scheduledAlarms.push({ id: alarmId, dateTime: alarmDateTime, label: alarmLabel, triggered: false });
+
+            renderAlarms();
+            startAlarmChecker();
+
+            showMessage("Alarm scheduled for " + formatAlarmDateTime(alarmDateTime) + "!", 'success');
+            document.getElementById('alarm-label').value = '';
+        }
+
+        function removeAlarm(id) {
+            scheduledAlarms = scheduledAlarms.filter(alarm => alarm.id !== id);
+            renderAlarms();
+            showMessage("Alarm removed.", 'info');
+        }
+
+        // Initialize state check when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInputs = [document.getElementById('alarm-date'), document.getElementById('task-due-date')];
+            dateInputs.forEach(input => {
+                if (input) input.value = today;
+            });
+
+            // Initial mock tasks for demonstration
+             scheduledTasks.push({ id: generateUniqueId(), name: "Review Gemini updates", priority: "High", date: today });
+             scheduledTasks.push({ id: generateUniqueId(), name: "Client follow-up", priority: "Medium", date: today });
+            
+            renderAlarms();
+            renderTasks();
+            updateClock(); 
+            renderCalendar(currentCalendarDate);
+        });
+
+    </script>
+</body>
+</html>
